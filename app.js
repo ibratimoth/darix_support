@@ -7,6 +7,7 @@ const { connectionDB } = require("./config/db");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
+const pageRoutes = require("./routes/pageRoutes");
 const logger = require("./logger");
 
 //configure env
@@ -21,6 +22,18 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+// Configure session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_KEY, // A secret key to sign the session ID cookie (make this a strong, random string)
+    resave: false, // Prevent session from being saved back to the session store if unmodified
+    saveUninitialized: true, // Save uninitialized session (session that is new, but not modified)
+    cookie: {
+      secure: false, // Set to true if using HTTPS (if you move to production, set to true)
+      maxAge: 1000 * 60 * 60 * 24, // Set cookie expiration (e.g., 1 day)
+    },
+  })
+);
 
 logger.info("Application starting...");
 
@@ -30,6 +43,7 @@ app.get("/", (req, res) => {
 
 app.use("/api", messageRoutes);
 app.use("/api/auth", userRoutes);
+app.use("/", pageRoutes);
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url} ${res.statusCode}`);

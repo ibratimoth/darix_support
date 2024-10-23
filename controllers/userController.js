@@ -2,6 +2,7 @@ const { Op } = require("sequelize"); // Import Op from Sequelize
 const User = require("./../models/userModel");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const axios = require("axios");
 const {
   validateRegisterInput,
   validatePassword,
@@ -206,6 +207,14 @@ const loginController = async (req, res) => {
     // Update last login timestamp
     await user.update({ lastLogin: new Date() });
 
+    req.session.user = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      lastLogin: user.lastLogin,
+      isVerified: user.isVerified,
+    };
     // Return successful response, omitting the password from the user object
     return sendResponse(res, 200, true, "Logged in successfully", {
       user: {
@@ -376,6 +385,48 @@ const logout = async (req, res) => {
   res.status(200).json({ success: true, message: "Logged out successfully" });
 };
 
+const dashboardController = async (req, res) => {
+  try {
+    // Get user details from session (after login)
+    const user = req.session.user;
+
+    // If user is not logged in, redirect to login page
+    if (!user) {
+      return res.redirect("/login");
+    }
+
+    // Make a request to the message route to get all messages
+    const messageResponse = await axios.get(
+      "http://localhost:4002/api/getAll",
+      {
+        headers: {
+          Authorization: `Bearer ${req.cookies.accessToken}`, // Pass the token if needed
+        },
+      }
+    );
+
+    // Check if the response is successful
+    if (messageResponse.data.success) {
+      const messages = messageResponse.data.data || [];
+
+      // Render the dashboard view with user data and messages
+      return res.render("dashboard", {
+        user, // Pass user data
+        messages, // Pass messages
+      });
+    } else {
+      return res.render("dashboard", {
+        user,
+        messages: [], // No messages available
+        error: "Could not retrieve messages",
+      });
+    }
+  } catch (error) {
+    console.error("Error rendering dashboard:", error);
+    return sendResponse(res, 500, false, "Error deleting user", error);
+  }
+};
+
 module.exports = {
   registerController,
   verifyEmail,
@@ -385,4 +436,5 @@ module.exports = {
   resetPassword,
   logout,
   resendVerificationToken,
+  dashboardController,
 };
