@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const { connectionDB } = require("./config/db");
 const cors = require("cors");
+const session = require("express-session");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const pageRoutes = require("./routes/pageRoutes");
