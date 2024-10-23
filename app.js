@@ -2,6 +2,7 @@ const express = require("express");
 const colors = require("colors");
 const dotenv = require("dotenv");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const { connectionDB } = require("./config/db");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
@@ -19,6 +20,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 logger.info("Application starting...");
 

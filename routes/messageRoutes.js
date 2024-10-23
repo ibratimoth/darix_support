@@ -6,10 +6,11 @@ const {
   deleteMessageById,
   deleteAllMessages,
 } = require("../controllers/messageController");
+const { authenticateToken } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 //send a message for support
-router.post("/sendmessage", sendMessage);
+router.post("/sendmessage", authenticateToken, sendMessage);
 
 //getAll messages
 router.get("/getAll", getMessages);

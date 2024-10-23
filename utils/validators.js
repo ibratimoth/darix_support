@@ -107,9 +107,9 @@ const validatePassword = ({ password }) => {
   return { valid: true };
 };
 
-const validateEmail = ({ email }) => {
+const validateEmail = (email) => {
   if (!email) {
-    return { valid: false, message: "All fields must be filled" };
+    return { valid: false, message: "Email field must be filled" };
   }
 
   if (!validator.isEmail(email)) {
@@ -118,7 +118,7 @@ const validateEmail = ({ email }) => {
 
   // Extract the local part of the email address
   const localPart = email.split("@")[0];
-  if (localPart[0] !== localPart[0].toLowerCase()) {
+  if (localPart.length === 0 || localPart[0] !== localPart[0].toLowerCase()) {
     return {
       valid: false,
       message: "Email must start with a lowercase letter",
@@ -127,6 +127,7 @@ const validateEmail = ({ email }) => {
 
   return { valid: true };
 };
+
 module.exports = {
   validateRegisterInput,
   validateVerificationCode,

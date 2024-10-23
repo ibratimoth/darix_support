@@ -6,20 +6,24 @@ const sendMessage = async (req, res) => {
   const { companyName, contactName, contactNumber, email, comment } = req.body;
 
   try {
+    // Validate all required fields
     if (!companyName || !contactName || !contactNumber || !email || !comment) {
-      return res.status(400).send({
-        success: false,
-        message: "All fields required",
-      });
+      return sendResponse(res, 400, false, "All fields are required");
     }
 
-    const validation = validateEmail(email); // Optional: Implement this function if needed
+    // Convert contactNumber to string if it's not already
+    if (typeof contactNumber !== "string") {
+      contactNumber = String(contactNumber);
+    }
+
+    // Validate the email
+    const validation = validateEmail(email);
     if (!validation.valid) {
       return sendResponse(res, 400, false, validation.message);
     }
 
+    // Create a new message
     const message = await Message.create({
-      // Using Sequelize create method
       companyName,
       contactName,
       contactNumber,
@@ -27,12 +31,13 @@ const sendMessage = async (req, res) => {
       comment,
     });
 
-    sendResponse(res, 201, true, "message sent successfully", {
-      ...message.get(), // Use get() method to retrieve the user instance data // Don't send the password back in the response
+    // Send success response
+    sendResponse(res, 201, true, "Message sent successfully", {
+      ...message.get(), // Use get() method to retrieve the message instance data
     });
   } catch (error) {
     console.error(error);
-    sendResponse(res, 500, false, "Error in sending a message", error);
+    sendResponse(res, 500, false, "Error in sending the message", error);
   }
 };
 
