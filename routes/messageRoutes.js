@@ -10,10 +10,10 @@ const { authenticateToken } = require("../middlewares/verifyToken");
 const router = express.Router();
 
 //send a message for support
-router.post("/sendmessage", authenticateToken, sendMessage);
+router.post("/sendmessage", sendMessage);
 
 //getAll messages
-router.get("/getAll", getMessages);
+router.get("/getAll", authenticateToken, getMessages);
 
 //get message by id
 router.get("/getmessage/:id", getMessageById);

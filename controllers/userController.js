@@ -16,6 +16,7 @@ const {
   sendResetSuccessEmail,
 } = require("../nodemailer/email");
 const generateTokenAndSetCookie = require("../utils/generateToken");
+const Message = require("../models/messageModel");
 
 const registerController = async (req, res) => {
   try {
@@ -204,6 +205,7 @@ const loginController = async (req, res) => {
       user.id
     );
 
+    res.cookie("accessToken", accessToken, { httpOnly: true, secure: false }); // Add `secure: true` in production if using HTTPS
     // Update last login timestamp
     await user.update({ lastLogin: new Date() });
 
@@ -395,35 +397,23 @@ const dashboardController = async (req, res) => {
       return res.redirect("/login");
     }
 
-    // Make a request to the message route to get all messages
-    const messageResponse = await axios.get(
-      "http://localhost:4002/api/getAll",
-      {
-        headers: {
-          Authorization: `Bearer ${req.cookies.accessToken}`, // Pass the token if needed
-        },
-      }
-    );
+    // Fetch messages directly from the database
+    const messages = await Message.findAll();
 
-    // Check if the response is successful
-    if (messageResponse.data.success) {
-      const messages = messageResponse.data.data || [];
-
-      // Render the dashboard view with user data and messages
-      return res.render("dashboard", {
-        user, // Pass user data
-        messages, // Pass messages
-      });
-    } else {
-      return res.render("dashboard", {
-        user,
-        messages: [], // No messages available
-        error: "Could not retrieve messages",
-      });
+    // Check if there are no messages
+    if (messages.length === 0) {
+      return sendResponse(res, 404, false, "No messages found");
     }
+
+    console.log(messages);
+    // Render the dashboard view with user data and messages
+    return res.render("dashboard", {
+      user, // Pass user data
+      messages, // Pass messages
+    });
   } catch (error) {
     console.error("Error rendering dashboard:", error);
-    return sendResponse(res, 500, false, "Error deleting user", error);
+    return sendResponse(res, 500, false, "Error getting dashboard user", error);
   }
 };
 

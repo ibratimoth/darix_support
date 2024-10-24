@@ -52,10 +52,16 @@ const getMessages = async (req, res) => {
     }
 
     // Send success response with the list of messages
-    sendResponse(res, 200, true, "Messages retrieved successfully", messages);
+    return sendResponse(
+      res,
+      200,
+      true,
+      "Messages retrieved successfully",
+      messages
+    );
   } catch (error) {
     console.error(error);
-    sendResponse(res, 500, false, "Error retrieving messages", error);
+    return sendResponse(res, 500, false, "Error retrieving messages", error);
   }
 };
 
