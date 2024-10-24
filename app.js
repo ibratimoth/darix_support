@@ -29,7 +29,6 @@ app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(helmet());
-app.use(csrf({ cookie: true }));
 app.use(hpp());
 // Configure session middleware
 app.use(
