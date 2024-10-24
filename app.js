@@ -9,6 +9,8 @@ const session = require("express-session");
 const { escape } = require("validator");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const csrf = require("csurf");
+const hpp = require("hpp");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const pageRoutes = require("./routes/pageRoutes");
@@ -27,6 +29,8 @@ app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(helmet());
+app.use(csrf({ cookie: true }));
+app.use(hpp());
 // Configure session middleware
 app.use(
   session({
@@ -77,9 +81,33 @@ app.use(generalLimiter);
 app.use("/api", messageRoutes);
 app.use("/", pageRoutes);
 
+// Function to sanitize sensitive fields from the request body
+const sanitizeRequestBody = (body) => {
+  if (body && typeof body === "object") {
+    const { password, ...sanitizedBody } = body; // Exclude password field
+    return sanitizedBody;
+  }
+  return body; // Return the original body if it's not an object
+};
+
+// Application logger middleware
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url} ${res.statusCode}`);
-  next();
+  // Log sanitized request body
+  const sanitizedReqBody = sanitizeRequestBody(req.body);
+  logger.info(`${req.method} ${req.url} received`, sanitizedReqBody);
+
+  // Request and Response Logger Middleware
+  const originalSend = res.send; // Save original res.send method
+  res.send = function (body) {
+    // Log the response
+    logger.info(
+      `${req.method} ${req.url} ${res.statusCode}`,
+      body ? JSON.parse(body) : ""
+    );
+    originalSend.call(this, body); // Call the original res.send method
+  };
+
+  next(); // Proceed to the next middleware or route handler
 });
 
 const PORT = process.env.PORT || 4002;
