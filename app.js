@@ -9,7 +9,6 @@ const session = require("express-session");
 const { escape } = require("validator");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
-const csrf = require("csurf");
 const hpp = require("hpp");
 const userRoutes = require("./routes/userRoutes");
 const messageRoutes = require("./routes/messageRoutes");
